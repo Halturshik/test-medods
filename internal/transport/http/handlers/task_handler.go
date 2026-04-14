@@ -31,6 +31,8 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Title,
 		Description: req.Description,
 		Status:      req.Status,
+		DueDate:     req.DueDate,
+		Repeat:      req.Repeat,
 	})
 	if err != nil {
 		writeUsecaseError(w, err)
@@ -73,6 +75,8 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Title,
 		Description: req.Description,
 		Status:      req.Status,
+		DueDate:     req.DueDate,
+		Repeat:      req.Repeat,
 	})
 	if err != nil {
 		writeUsecaseError(w, err)
@@ -117,27 +121,22 @@ func getIDFromRequest(r *http.Request) (int64, error) {
 	if rawID == "" {
 		return 0, errors.New("missing task id")
 	}
-
 	id, err := strconv.ParseInt(rawID, 10, 64)
 	if err != nil {
 		return 0, errors.New("invalid task id")
 	}
-
 	if id <= 0 {
 		return 0, errors.New("invalid task id")
 	}
-
 	return id, nil
 }
 
 func decodeJSON(r *http.Request, dst any) error {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-
 	if err := decoder.Decode(dst); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -161,6 +160,5 @@ func writeError(w http.ResponseWriter, status int, err error) {
 func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-
 	_ = json.NewEncoder(w).Encode(payload)
 }

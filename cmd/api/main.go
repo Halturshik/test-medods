@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"example.com/taskservice/internal/background"
 	infrastructurepostgres "example.com/taskservice/internal/infrastructure/postgres"
 	postgresrepo "example.com/taskservice/internal/repository/postgres"
 	transporthttp "example.com/taskservice/internal/transport/http"
@@ -36,7 +37,10 @@ func main() {
 	defer pool.Close()
 
 	taskRepo := postgresrepo.New(pool)
-	taskUsecase := task.NewService(taskRepo)
+	taskUsecase := task.NewService(taskRepo, logger)
+
+	go background.StartRecurrenceWorker(ctx, taskUsecase, logger)
+
 	taskHandler := httphandlers.NewTaskHandler(taskUsecase)
 	docsHandler := swaggerdocs.NewHandler()
 	router := transporthttp.NewRouter(taskHandler, docsHandler)
